@@ -1,20 +1,22 @@
+#include <stdint.h>
+
 typedef enum{
-    RUNNING = 0;
-    READY = 1;
-    BLOCKED = 2;
-    TERMINATED = 3;
-    INNACTIVE = 4;
+    RUNNING = 0,
+    READY = 1,
+    BLOCKED = 2,
+    TERMINATED = 3,
+    INNACTIVE = 4
 }task_state_t;
 
 typedef enum{
-    HIGHEST;
-    HIGH;
-    MED_HIGH;
-    MED;
-    MED_LOW;
-    LOW;
-    LOWEST;
-    IDLE;
+    HIGHEST,
+    HIGH,
+    MED_HIGH,
+    MED,
+    MED_LOW,
+    LOW,
+    LOWEST,
+    IDLE
 }priority_t;
 
 typedef struct{
@@ -22,11 +24,11 @@ typedef struct{
     void *stack_pointer;
     task_state_t state;
     uint8_t priority;
-    tcb_t *list_pointer;
-//    uint32_t delay_time; // If you want to implement task delays maybe
+    void *list_pointer;
+//    uint32_t delay_time // If you want to implement task delays maybe
     // EVENT FLAGS... used to unblock task from blocked state
-    void *stack_base_address;
-    void *stack_upper_address;
+    int *stack_base_address;
+    void *stack_overflow_address;
     uint32_t stack_size;
 }tcb_t;
 
