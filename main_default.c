@@ -12,10 +12,10 @@ void SysTick_Handler(void) {
 }
 
 int main(void) {
-	rtos_init();
-	
 	SysTick_Config(SystemCoreClock/1000);
 	printf("\nStarting...\n\n");
+	
+	rtos_init();
 	
 	uint32_t period = 1000; // 1s
 	uint32_t prev = -period;
@@ -25,5 +25,4 @@ int main(void) {
 			prev += period;
 		}
 	}
-		
 }
