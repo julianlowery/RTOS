@@ -1,3 +1,6 @@
+#ifndef __globals_h
+#define __globals_h
+
 #include <stdint.h>
 
 typedef enum{
@@ -21,7 +24,7 @@ typedef enum{
 
 typedef struct{
     uint32_t task_id;
-    void *stack_pointer;
+    uint32_t *stack_pointer;
     task_state_t state;
     uint8_t priority;
     void *list_pointer;
@@ -31,6 +34,9 @@ typedef struct{
     uint32_t *stack_overflow_address;
     uint32_t stack_size;
 }tcb_t;
+
+// Typedef for function that takes a void* and returns void
+typedef void (*rtosTaskFunc_t)(void *args);
 
 typedef struct{
     tcb_t* head;
@@ -45,3 +51,5 @@ typedef struct{
     tcb_list_t terminated_list;
     tcb_list_t inactive_list;
 }scheduler_t;
+
+#endif // globals_h
