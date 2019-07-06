@@ -10,7 +10,7 @@ void rtos_init(){
 	const uint32_t num_tcbs = 6;
 	
 	// Initalize all task stack addresses (including main task stack)
-	uint32_t *initial_sp_pointer = (uint32_t*)0x00000000; 
+	uint32_t *initial_sp_pointer = (uint32_t*)0x0; 
 	tcb_main.stack_base_address = (uint32_t*)(*initial_sp_pointer);
 	tcb_main.stack_overflow_address = tcb_main.stack_base_address-(stack_size*2);
 	
@@ -36,4 +36,20 @@ void rtos_init(){
 	// Set psp to top of main() stack
 	uint32_t main_proc_top = main_stack_top-(stack_size*2);
 	__set_PSP(main_proc_top);
+}
+
+// Context Swtich - 	NEEDS TO BE TESTED ---------------------------------------------------------------------------
+void context_switch(tcb_t *old_task_tcb, tcb_t *new_task_tcb){
+	old_task_tcb->stack_pointer = (uint32_t*)storeContext();
+	
+	uint32_t new_task_psp = (uint32_t)new_task_tcb->stack_pointer;
+	__set_PSP(new_task_psp);
+	
+	restoreContext(new_task_psp);
+}
+
+void task_create(rtosTaskFunc_t function_pointer, void* function_arg, priority_t task_priority){
+	
+	
+	
 }
