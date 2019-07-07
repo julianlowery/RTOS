@@ -1,4 +1,5 @@
 #include "rtos.h"
+#include "context.h"
 
 tcb_t tcb_array[6];
 tcb_t tcb_main;
@@ -96,3 +97,4 @@ void task_create(rtosTaskFunc_t function_pointer, void* function_arg, priority_t
 	
 	task_number++;
 }
+
