@@ -11,20 +11,22 @@ void SysTick_Handler(void) {
     msTicks++;
 }
 
-/*
-void task1(arg){
+
+void task1(void* arg){
 	static int n = 0;
+	n = (int)arg;
 	n++;
 }
-*/
+
 
 int main(void) {
+	printf("\nStarting...\n\n");
 	SysTick_Config(SystemCoreClock/1000);
 	printf("\nStarting...\n\n");
 	
 	rtos_init();
 	
-//	task_create(task1, NULL, LOW);
+	task_create(task1, NULL, LOW);
 	
 	uint32_t period = 1000; // 1s
 	uint32_t prev = -period;
