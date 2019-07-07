@@ -11,10 +11,12 @@ void SysTick_Handler(void) {
     msTicks++;
 }
 
+/*
 void task1(arg){
 	static int n = 0;
 	n++;
 }
+*/
 
 int main(void) {
 	SysTick_Config(SystemCoreClock/1000);
@@ -22,7 +24,7 @@ int main(void) {
 	
 	rtos_init();
 	
-	task_create(task1, NULL, LOW);
+//	task_create(task1, NULL, LOW);
 	
 	uint32_t period = 1000; // 1s
 	uint32_t prev = -period;
@@ -33,4 +35,3 @@ int main(void) {
 		}
 	}
 }
-
