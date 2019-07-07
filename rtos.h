@@ -1,12 +1,10 @@
 #ifndef __rtos_h
 #define __rtos_h
 
-#include <stdio.h>
-#include <cmsis_armcc.h>
 #include <stdbool.h>
 
 #include "globals.h"
-#include "context.h"
+#include "cmsis_armcc.h"
 
 // Interface Functions
 void rtos_init(void);
