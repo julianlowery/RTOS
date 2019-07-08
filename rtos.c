@@ -1,5 +1,6 @@
 #include "rtos.h"
 #include "context.h"
+#include <stdio.h>
 
 tcb_t tcb_array[6];
 tcb_t tcb_main;
@@ -9,6 +10,7 @@ uint8_t num_tasks = 0;
 void rtos_init(){
 	const uint32_t stack_size = 0x100;
 	const uint32_t num_tcbs = 6;
+	volatile int a = 0x12345678;
 	
 	// Initalize all task stack addresses (including main task stack)
 	uint32_t *initial_sp_pointer = (uint32_t*)0x0; 
@@ -26,16 +28,19 @@ void rtos_init(){
 		uint32_t *main_task_loc = main_loc-(stack_size*2);
 		*main_task_loc = *main_loc;
 	}
+		printf("1\n");
 
 	// Set main stack pointer to base address of main() stack 
 	__set_MSP((uint32_t)tcb_main.stack_base_address);
+		printf("2\n");
 
 	// Switch from using msp to psp
 	uint32_t control_reg = __get_CONTROL();
-	__set_CONTROL((uint32_t)(control_reg|=(1<<1)));
+	__set_CONTROL((uint32_t)(control_reg|=(1<<1))); // HARD FAULT HERE
+		printf("3\n");
 	
 	// Set psp to top of main() stack
-	uint32_t main_proc_top = main_stack_top-(stack_size*2);
+	uint32_t main_proc_top = main_stack_top;// is this supposed to be -(stack_size*2);
 	__set_PSP(main_proc_top);
 }
 
@@ -61,8 +66,10 @@ bool push_to_stack(tcb_t *tcb, uint32_t value){
 	tcb->stack_pointer--;
 	
 	// Check for stack overflow
-	if(tcb->stack_pointer <= tcb->stack_overflow_address)
+	if(tcb->stack_pointer <= tcb->stack_overflow_address){
+		printf("STACK OVERFLOW from task id: %d/n", tcb->task_id);
 		return false;
+	}
 	
 	*(tcb->stack_pointer) = value;
 	return true;
