@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "globals.h"
-#include "cmsis_armcc.h"
+#include <LPC17xx.h>
 
 // Interface Functions
 void rtos_init(void);
@@ -17,10 +17,5 @@ void semaphore_give(void);
 void mutex_create(void);
 void mutex_give(void);
 void mutex_take(void);
-
-// Other functions
-bool push_to_stack(tcb_t *tcb, uint32_t value);
-uint32_t pop_from_stack(tcb_t *tcb);
-bool context_switch(tcb_t *old_task, tcb_t *new_task);
 
 #endif //__rtos_h
