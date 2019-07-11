@@ -10,14 +10,14 @@ uint8_t num_tasks = 0;
 //extern void SysTick_Handler(void); // find better solution?
 
 void rtos_init(){
-	const uint32_t stack_size = 0x100; // Actaully physical stack_size/4
+	const uint32_t stack_size = 0x100; // Actaully physical stack_size/4 to account for 32 bit pointer incrementation
 	const uint32_t num_tcbs = 6;
 	const uint8_t main_task_num = 0;
 	const uint32_t vector_table_address = 0x0;
 	const uint32_t psp_enable = (1<<1);
 	
 	// Debug
-	volatile int a = 0x12345678;
+	volatile int a = 0x22222222;
 	
 	tcb_array[main_task_num].task_id = main_task_num;
 	tcb_array[main_task_num].stack_pointer = tcb_array[main_task_num].stack_base_address; // This will be set properly as soon as task is switched out of
@@ -81,4 +81,5 @@ void task_create(rtosTaskFunc_t function_pointer, void* function_arg, priority_t
 	
 	task_number++;
 }
+
 
