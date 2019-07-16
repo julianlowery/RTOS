@@ -14,7 +14,7 @@ void SysTick_Handler(void);
 void PendSV_Handler(void);
 
 void enqueue(tcb_list_t *list, tcb_t *tcb);
-void dequeue(tcb_list_t *list, tcb_t *tcb);
+tcb_t* dequeue(tcb_list_t *list);
 void add_task_to_sched(scheduler_t *scheduler, tcb_t *tcb);
 
 #endif // __scheduler_h
