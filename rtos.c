@@ -2,10 +2,12 @@
 #include "scheduler.h"
 #include <stdio.h>
 
-tcb_t tcb_array[6];
-tcb_t tcb_main;
+extern tcb_t tcb_array[6];
+extern tcb_t tcb_main;
 
-uint8_t num_tasks = 0;
+extern scheduler_t scheduler;
+
+//uint8_t num_tasks = 0; can't remember why I had this here
 
 //extern void SysTick_Handler(void); // find better solution?
 
@@ -56,7 +58,7 @@ void rtos_init(){
 	// Switch from using msp to psp (local variables restored)
 	__set_CONTROL((uint32_t)__get_CONTROL|psp_enable);
 	
-
+	add_task_to_sched(&scheduler, &tcb_array[main_task_num]);
 }
 
 void task_create(rtosTaskFunc_t function_pointer, void* function_arg, priority_t task_priority){
@@ -78,6 +80,8 @@ void task_create(rtosTaskFunc_t function_pointer, void* function_arg, priority_t
 	push_to_stack(&tcb_array[task_number], (uint32_t)function_arg);
 	for(uint8_t count = 0; count < 8; count++)
 		push_to_stack(&tcb_array[task_number], 0x1);
+	
+	add_task_to_sched(&scheduler, &tcb_array[task_number]);
 	
 	task_number++;
 }
