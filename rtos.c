@@ -6,6 +6,7 @@ extern tcb_t tcb_array[6];
 extern tcb_t tcb_main;
 
 extern scheduler_t scheduler;
+extern bool run_scheduler;
 
 //uint8_t num_tasks = 0; can't remember why I had this here
 
@@ -86,4 +87,25 @@ void task_create(rtosTaskFunc_t function_pointer, void* function_arg, priority_t
 	task_number++;
 }
 
+void semaphore_init(semaphore_t *sem, uint8_t initial_count){
+	sem->count = initial_count;
+	sem->block_list.head = NULL;
+	sem->block_list.tail = NULL;
+	sem->block_list.size = 0;
+}
+
+void semaphore_take(semaphore_t *sem){
+	if(sem->count > 0)
+		sem->count--;
+	else{
+		enqueue(&sem->block_list, scheduler.running_task);
+		dequeue(&scheduler.ready_lists[scheduler.current_priority]);
+		run_scheduler = true;
+	}
+}
+
+void semaphore_give(semaphore_t *sem){
+	// The running task is fine unless a higher priority task is released by the mutex
+	// Just dequeue from block list and enqueue to its proper queue in priority level
+}
 
