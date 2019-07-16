@@ -5,38 +5,68 @@
 
 #include "rtos.h"
 
-extern tcb_t tcb_array[6];
+//extern tcb_t tcb_array[6];
 extern uint32_t msTicks;
 
+semaphore_t blocker;
+
 void task1(void* arg){
+	static uint32_t delay_count = 0;
 	uint32_t print_val = (uint32_t) arg;
 	while(true) {
 		printf("%d\n", print_val);
+		delay_count++;
+		if(delay_count >= 500){
+			semaphore_take(&blocker);
+		}
 	}
 }
 
 void task2(void* arg){
+	static uint32_t delay_count = 0;
 	uint32_t print_val = (uint32_t) arg;
 	while(true) {
 		printf("%d\n", print_val);
+		delay_count++;
+		if(delay_count >= 1000){
+			semaphore_take(&blocker);
+		}
 	}
 }
 
 void task3(void* arg){
+	static uint32_t delay_count = 0;
+	uint32_t print_val = (uint32_t) arg;
 	while(true) {
-		printf("t3\n");
+		printf("%d\n", print_val);
+		delay_count++;
+		if(delay_count >= 1500){
+			semaphore_take(&blocker);
+		}
 	}
 }
 
 void task4(void* arg){
+	static uint32_t delay_count = 0;
+	uint32_t print_val = (uint32_t) arg;
 	while(true) {
-		printf("t4\n");
+		printf("%d\n", print_val);
+		delay_count++;
+		if(delay_count >= 2000){
+			semaphore_take(&blocker);
+		}
 	}
 }
 
 void task5(void* arg){
+	static uint32_t delay_count = 0;
+	uint32_t print_val = (uint32_t) arg;
 	while(true) {
-		printf("t5\n");
+		printf("%d\n", print_val);
+		delay_count++;
+		if(delay_count >= 2500){
+			semaphore_take(&blocker);
+		}
 	}
 }
 
@@ -50,12 +80,14 @@ int main(void) {
 	printf("1\n");
 	
 	rtos_init();
+	
+	semaphore_init(&blocker, 0);
 
-	task_create(task1, (void*)0x11111111, LOW);
-	task_create(task2, (void*)0x01, LOW);
-	task_create(task3, NULL, LOW);
-	task_create(task4, NULL, LOW);
-	task_create(task5, NULL, LOW);
+	task_create(task1, (void*)0x1, IDLE);
+	task_create(task2, (void*)0x2, IDLE);
+	task_create(task3, (void*)0x3, IDLE);
+	task_create(task4, (void*)0x4, IDLE);
+	task_create(task5, (void*)0x5, IDLE);
 
 //	uint32_t period = 1000; // 1s
 //	uint32_t prev = -period;
@@ -67,4 +99,3 @@ int main(void) {
 		printf("t_main\n");
 	}
 }
-
