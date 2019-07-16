@@ -26,8 +26,8 @@ typedef struct{
     uint32_t task_id;
     uint32_t *stack_pointer;
     task_state_t state;
-    uint8_t priority;
-    void *list_pointer;
+    priority_t priority;
+    void *tcb_pointer;
 //    uint32_t delay_time // If you want to implement task delays maybe
     // EVENT FLAGS... used to unblock task from blocked state
     uint32_t *stack_base_address;
@@ -45,11 +45,11 @@ typedef struct{
 }tcb_list_t;
 
 typedef struct{
-    tcb_t* running_task;
-    tcb_list_t ready_lists[8];
-    tcb_list_t blocked_list; // should be priority queue based on first task to be unblocked
-    tcb_list_t terminated_list;
-    tcb_list_t inactive_list;
+  tcb_t* running_task;
+  tcb_list_t ready_lists[8];
+//    tcb_list_t blocked_list; // should be priority queue based on first task to be unblocked
+  tcb_list_t terminated_list;
+	priority_t current_priority;
 }scheduler_t;
 
 #endif // globals_h
