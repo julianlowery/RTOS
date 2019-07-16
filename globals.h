@@ -52,4 +52,14 @@ typedef struct{
 	priority_t current_priority;
 }scheduler_t;
 
+typedef struct{
+	uint8_t count;
+	tcb_list_t block_list;
+}semaphore_t;
+
+typedef struct{
+	uint8_t count;
+	tcb_list_t block_list;
+}mutex_t;
+
 #endif // globals_h
