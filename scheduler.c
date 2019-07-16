@@ -12,7 +12,6 @@ tcb_t tcb_array[6];
 tcb_t tcb_main;
 
 bool run_scheduler = false;
-tcb_t *switch_to_tcb;
 
 scheduler_t scheduler = {
 	.running_task = &tcb_array[0],
@@ -62,8 +61,21 @@ void SysTick_Handler(void) {
   msTicks++;
 	time_slice_count--;
 	
-	if(time_slice_count == 0 || run_scheduler){
+	if(time_slice_count == 0){
 		time_slice_count = time_slice_len;
+		
+		// Rearrange ready queue for scheduler
+		tcb_t *old_task = scheduler.running_task;
+		
+		tcb_list_t *list = &scheduler.ready_lists[scheduler.current_priority];
+		
+		dequeue(list);
+		enqueue(list, old_task);
+		
+		// Set pendSV exception to pending
+		SCB->ICSR=(SCB->ICSR|set_pendsv);
+	}
+	if(run_scheduler){
 		run_scheduler = false;
 		
 		// Set pendSV exception to pending
@@ -73,42 +85,45 @@ void SysTick_Handler(void) {
 
 void PendSV_Handler(void){
 	
-	/*
-	// For testing context swtich
-	static uint8_t task_number = 0;
-	task_number %= 6;
-	uint8_t next_task_number = (task_number+1)%6;
-	
-	context_switch(&tcb_array[task_number], &tcb_array[next_task_number]);
-
-	task_number++;
-	*/
-	
-		// Check if scheduler was called for new high priority task
+		// Check if scheduler was called for new higher priority task
 	if(scheduler.current_priority < scheduler.running_task->priority){
 		priority_t old_priority = scheduler.running_task->priority;
 		tcb_t *old_tcb = scheduler.ready_lists[old_priority].head;
 		
+		tcb_t *new_tcb = scheduler.ready_lists[scheduler.current_priority].head;
+		
 		// Update running task to new task
-		scheduler.running_task = switch_to_tcb;
+		scheduler.running_task = new_tcb;
 		
 		// switch_to_tcb is global, was set in add_task_to_sched
-		context_switch(old_tcb, switch_to_tcb);
-		switch_to_tcb = NULL;
+		context_switch(old_tcb, new_tcb);
 	}
-	// FIX THIS STATEMENT, very obscure and logic is wrong
+	// Else run round-robin for the current priority level
 	else if(scheduler.ready_lists[scheduler.current_priority].head->tcb_pointer != NULL){
 		tcb_t *old_task = scheduler.running_task;
-		tcb_t *new_task = scheduler.running_task->tcb_pointer;
+		tcb_t *new_task = scheduler.ready_lists[scheduler.current_priority].head;
+//		tcb_t *new_task = scheduler.running_task->tcb_pointer; old method, not as proper, might fail
 		
-		tcb_list_t *list = &scheduler.ready_lists[scheduler.current_priority];
+//		tcb_list_t *list = &scheduler.ready_lists[scheduler.current_priority];
 		
-		dequeue(list, old_task);
-		enqueue(list, old_task);
+//		dequeue(list);
+//		enqueue(list, old_task);
+		
+		scheduler.running_task = new_task;
 		
 		context_switch(old_task, new_task);
 	}
-	
+	// Else if one last task left in the running priority level
+	else if(scheduler.ready_lists[scheduler.current_priority].head->tcb_pointer == NULL){
+	}
+	// Else the last task of the current priority level must have been removed
+	else if(scheduler.ready_lists[scheduler.current_priority].head == NULL){
+		// This means the last task of the current priority was moved to a semaphore or mutex block list
+		// Find the next highest priority (iterate upward in priority number till next level is found)
+		// Set running task, new_tcb, old_tcb, and perform context switch
+		
+		// NOTE on entry to this possibility, running was left pointing to the task that is actually running but no longer in the ready queue
+	}
 	
 	const uint32_t clear_pendsv = (1<<27);
 	// Remove pending state from pendSV exception
@@ -128,14 +143,16 @@ void enqueue(tcb_list_t *list, tcb_t *tcb){
 	return;
 }
 
-void dequeue(tcb_list_t *list, tcb_t *tcb){
+tcb_t* dequeue(tcb_list_t *list){
 	if(list->head == NULL)
-		return;
+		return NULL;
 	else{
 		// Set dequeued tcb's tcb_pointer to NULL and set new head
-		list->head = tcb->tcb_pointer;
-		tcb->tcb_pointer = NULL;
-		
+		tcb_t* temp_ptr = list->head;
+		list->head = list->head->tcb_pointer;
+		temp_ptr->tcb_pointer = NULL;
+		list->size--;
+		return temp_ptr;
 	}
 }
 
@@ -154,46 +171,7 @@ void add_task_to_sched(scheduler_t *scheduler, tcb_t *tcb){
 		
 		// Call scheduler to run next tick and set tcb global to be switched to
 		run_scheduler = true;
-		switch_to_tcb = tcb;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-void run_scheduler(scheduler_t *scheduler){
-	// Check if scheduler was called for new high priority task
-	if(scheduler->current_priority > scheduler->running_task->priority){
-		priority_t old_priority = scheduler->current_priority;
-		tcb_t *old_tcb = scheduler->ready_lists[old_priority].head;
-		context_switch(scheduler->running_task, old_tcb);
-	}
-	else{
-		
-	}
-}
-*/
-
-
-
-
-
-
-
-
-
-
 
 
