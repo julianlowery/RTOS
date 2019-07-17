@@ -84,7 +84,7 @@ void SysTick_Handler(void) {
 }
 
 void PendSV_Handler(void){
-	
+	/*
 		// Check if scheduler was called for new higher priority task
 	if(scheduler.current_priority < scheduler.running_task->priority){
 		priority_t old_priority = scheduler.running_task->priority;
@@ -98,8 +98,10 @@ void PendSV_Handler(void){
 		// switch_to_tcb is global, was set in add_task_to_sched
 		context_switch(old_tcb, new_tcb);
 	}
+	
+	
 	// Else run round-robin for the current priority level
-	else if(scheduler.ready_lists[scheduler.current_priority].head->tcb_pointer != NULL){
+	else if(scheduler.ready_lists[scheduler.current_priority].head->tcb_pointer != NULL){ // might be able to combine with case below
 		tcb_t *old_task = scheduler.running_task;
 		tcb_t *new_task = scheduler.ready_lists[scheduler.current_priority].head;
 //		tcb_t *new_task = scheduler.running_task->tcb_pointer; old method, not as proper, might fail
@@ -114,7 +116,13 @@ void PendSV_Handler(void){
 		context_switch(old_task, new_task);
 	}
 	// Else if one last task left in the running priority level
-	else if(scheduler.ready_lists[scheduler.current_priority].head->tcb_pointer == NULL){
+	else if(scheduler.ready_lists[scheduler.current_priority].head->tcb_pointer == NULL){ // might be able to combine with case above
+		tcb_t *old_task = scheduler.running_task;
+		tcb_t *new_task = scheduler.ready_lists[scheduler.current_priority].head;
+		
+		scheduler.running_task = new_task;
+		
+		context_switch(old_task, new_task);
 	}
 	// Else the last task of the current priority level must have been removed
 	else if(scheduler.ready_lists[scheduler.current_priority].head == NULL){
@@ -122,12 +130,106 @@ void PendSV_Handler(void){
 		// Find the next highest priority (iterate upward in priority number till next level is found)
 		// Set running task, new_tcb, old_tcb, and perform context switch
 		
+		tcb_t *old_task = scheduler.running_task;
+		
+		while(scheduler.ready_lists[scheduler.current_priority].head == NULL){
+			scheduler.current_priority--;
+		}
+		
+		tcb_t *new_task = scheduler.ready_lists[scheduler.current_priority].head;
+		
+		scheduler.running_task = new_task;
+		
+		context_switch(old_task, new_task);
+		
 		// NOTE on entry to this possibility, running was left pointing to the task that is actually running but no longer in the ready queue
 	}
 	
 	const uint32_t clear_pendsv = (1<<27);
 	// Remove pending state from pendSV exception
 	SCB->ICSR=(SCB->ICSR|clear_pendsv);
+	
+	*/
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// Check if scheduler was called for new higher priority task
+	if(scheduler.current_priority < scheduler.running_task->priority){
+		priority_t old_priority = scheduler.running_task->priority;
+		tcb_t *old_tcb = scheduler.ready_lists[old_priority].head;
+		
+		tcb_t *new_tcb = scheduler.ready_lists[scheduler.current_priority].head;
+		
+		// Update running task to new task
+		scheduler.running_task = new_tcb;
+		
+		// switch_to_tcb is global, was set in add_task_to_sched
+		context_switch(old_tcb, new_tcb);
+	}
+	
+		// Else the last task of the current priority level must have been removed (ENTERING THIS CASE WITH INVALID NEW TASK AFTER RELEASING SEMAPHORE)
+	else if(scheduler.ready_lists[scheduler.current_priority].head == NULL){
+		// This means the last task of the current priority was moved to a semaphore or mutex block list
+		// Find the next highest priority (iterate upward in priority number till next level is found)
+		// Set running task, new_tcb, old_tcb, and perform context switch
+		
+		tcb_t *old_task = scheduler.running_task;
+		
+		while(scheduler.ready_lists[scheduler.current_priority].head == NULL){
+			scheduler.current_priority++; // Incrementing is decreasing priority
+		}
+		
+		tcb_t *new_task = scheduler.ready_lists[scheduler.current_priority].head;
+		scheduler.running_task = new_task;
+		context_switch(old_task, new_task);
+		
+		// NOTE on entry to this possibility, running was left pointing to the task that is actually running but no longer in the ready queue
+	}
+	
+	// Else run round-robin for the current priority level
+	else{
+		tcb_t *old_task = scheduler.running_task;
+		tcb_t *new_task = scheduler.ready_lists[scheduler.current_priority].head;
+		
+		scheduler.running_task = new_task;
+		
+		context_switch(old_task, new_task);
+	}
+	
+	const uint32_t clear_pendsv = (1<<27);
+	// Remove pending state from pendSV exception
+	SCB->ICSR=(SCB->ICSR|clear_pendsv);
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
 
 void enqueue(tcb_list_t *list, tcb_t *tcb){
@@ -146,6 +248,14 @@ void enqueue(tcb_list_t *list, tcb_t *tcb){
 tcb_t* dequeue(tcb_list_t *list){
 	if(list->head == NULL)
 		return NULL;
+	else if(list->head == list->tail){
+		tcb_t* temp_ptr = list->head;
+		temp_ptr->tcb_pointer = NULL;
+		list->head = NULL;
+		list->tail = NULL;
+		list->size--;
+		return temp_ptr;
+	}
 	else{
 		// Set dequeued tcb's tcb_pointer to NULL and set new head
 		tcb_t* temp_ptr = list->head;
