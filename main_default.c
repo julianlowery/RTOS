@@ -29,7 +29,7 @@ void task2(void* arg){
 		printf("%d\n", print_val);
 		delay_count++;
 		if(delay_count >= 1000){
-			semaphore_take(&blocker);
+			semaphore_give(&blocker);
 		}
 	}
 }
@@ -41,7 +41,8 @@ void task3(void* arg){
 		printf("%d\n", print_val);
 		delay_count++;
 		if(delay_count >= 1500){
-			semaphore_take(&blocker);
+			semaphore_give(&blocker);
+			semaphore_give(&blocker);
 		}
 	}
 }
@@ -83,11 +84,11 @@ int main(void) {
 	
 	semaphore_init(&blocker, 0);
 
-	task_create(task1, (void*)0x1, IDLE);
+	task_create(task1, (void*)0x1, LOW);
 	task_create(task2, (void*)0x2, IDLE);
-	task_create(task3, (void*)0x3, IDLE);
-	task_create(task4, (void*)0x4, IDLE);
-	task_create(task5, (void*)0x5, IDLE);
+//	task_create(task3, (void*)0x3, IDLE);
+//	task_create(task4, (void*)0x4, LOW);
+//	task_create(task5, (void*)0x5, LOW);
 
 //	uint32_t period = 1000; // 1s
 //	uint32_t prev = -period;
