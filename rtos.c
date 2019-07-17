@@ -107,5 +107,21 @@ void semaphore_take(semaphore_t *sem){
 void semaphore_give(semaphore_t *sem){
 	// The running task is fine unless a higher priority task is released by the mutex
 	// Just dequeue from block list and enqueue to its proper queue in priority level
+	
+	if(sem->block_list.head == NULL)
+		sem->count++;
+	else{
+		tcb_t * freed_task = dequeue(&sem->block_list);
+		// Add unblocked task to scheduler ready queue
+		enqueue(&scheduler.ready_lists[freed_task->priority], freed_task);
+		if(freed_task->priority < scheduler.running_task->priority){ // lower number is higher priority
+			// Update priority to scheduler can switch to higher priority
+			scheduler.current_priority = freed_task->priority;
+			run_scheduler = true;
+		}
+	}
 }
+
+
+
 
