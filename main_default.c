@@ -16,7 +16,13 @@ void task1(void* arg){
 	while(true) {
 		printf("%d\n", print_val);
 		delay_count++;
-		if(delay_count >= 500){
+		if(delay_count == 500){
+			semaphore_take(&blocker);
+		}
+		if(delay_count == 1500)
+			semaphore_take(&blocker);
+		if(delay_count == 2500){
+			semaphore_take(&blocker);
 			semaphore_take(&blocker);
 		}
 	}
@@ -28,7 +34,13 @@ void task2(void* arg){
 	while(true) {
 		printf("%d\n", print_val);
 		delay_count++;
-		if(delay_count >= 1000){
+		if(delay_count == 1000){
+			semaphore_give(&blocker);
+		}
+		if(delay_count == 2000){
+			semaphore_give(&blocker);
+			semaphore_give(&blocker);
+			semaphore_give(&blocker);
 			semaphore_give(&blocker);
 		}
 	}
@@ -40,7 +52,7 @@ void task3(void* arg){
 	while(true) {
 		printf("%d\n", print_val);
 		delay_count++;
-		if(delay_count >= 1500){
+		if(delay_count == 1500){
 			semaphore_give(&blocker);
 			semaphore_give(&blocker);
 		}
@@ -53,7 +65,7 @@ void task4(void* arg){
 	while(true) {
 		printf("%d\n", print_val);
 		delay_count++;
-		if(delay_count >= 2000){
+		if(delay_count == 2000){
 			semaphore_take(&blocker);
 		}
 	}
@@ -65,7 +77,7 @@ void task5(void* arg){
 	while(true) {
 		printf("%d\n", print_val);
 		delay_count++;
-		if(delay_count >= 2500){
+		if(delay_count == 2500){
 			semaphore_take(&blocker);
 		}
 	}
