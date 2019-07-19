@@ -1,8 +1,6 @@
 #ifndef __scheduler_h
 #define __scheduler_h
 
-#include <stdbool.h>
-
 #include "globals.h"
 
 bool push_to_stack(tcb_t *tcb, uint32_t value);
@@ -15,6 +13,7 @@ void PendSV_Handler(void);
 
 void enqueue(tcb_list_t *list, tcb_t *tcb);
 tcb_t* dequeue(tcb_list_t *list);
+tcb_t* remove_from_list(tcb_list_t *list, tcb_t *tcb);
 void add_task_to_sched(scheduler_t *scheduler, tcb_t *tcb);
 
 #endif // __scheduler_h
