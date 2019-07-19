@@ -122,6 +122,48 @@ void semaphore_give(semaphore_t *sem){
 	}
 }
 
+void mutex_init(mutex_t *mutex){
+	mutex->available = true;
+	mutex->owner_tcb = NULL;
+	mutex->owner_true_priority = IDLE;
+	mutex->inherited_priority = IDLE;
+	mutex->block_list.head = NULL;
+	mutex->block_list.tail = NULL;
+	mutex->block_list.size = 0;
+}
+
+void mutex_take(mutex_t *mutex){
+	if(mutex->available == true){
+		mutex->available = false;
+		mutex->owner_tcb = scheduler.running_task;
+		mutex->owner_true_priority = scheduler.running_task->priority;
+		mutex->inherited_priority = scheduler.running_task->priority;
+		mutex->block_list.head = NULL;
+	  mutex->block_list.tail = NULL;
+	  mutex->block_list.size = 0;
+	}
+	else{
+		enqueue(&mutex->block_list, scheduler.running_task);
+		dequeue(&scheduler.ready_lists[scheduler.current_priority]);
+		
+		if(scheduler.current_priority < mutex->inherited_priority){ // low priority number is a higher priority	
+			
+			// Remove mutex owner task from its ready queue with remove function
+			remove_from_list(&scheduler.ready_lists[mutex->inherited_priority], mutex->owner_tcb);
+			// Add mutex owner task to proper new priority level in ready queue
+			enqueue(&scheduler.ready_lists[scheduler.current_priority], mutex->owner_tcb);
+			
+			mutex->inherited_priority = scheduler.current_priority;
+			mutex->owner_tcb->priority = mutex->inherited_priority;
+		}
+		run_scheduler = true;
+	}
+}
+
+void mutex_give(mutex_t *mutex){
+	
+}
+
 
 
 
