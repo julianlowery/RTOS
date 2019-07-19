@@ -1,6 +1,5 @@
 #include <LPC17xx.h>
 #include <stdio.h>
-#include <stdbool.h>
 
 #include "scheduler.h"
 #include "context.h"
@@ -266,6 +265,48 @@ tcb_t* dequeue(tcb_list_t *list){
 	}
 }
 
+tcb_t* remove_from_list(tcb_list_t *list, tcb_t *tcb){
+	if(list->head == NULL)
+		return NULL;
+	else{
+		tcb_t *current = list->head;
+		tcb_t *previous = NULL;
+		
+		// If tcb to be returned is first in list
+		if(current == tcb){
+			if(current->tcb_pointer == NULL){
+				list->head = NULL;
+			}
+			else{
+				list->head = current->tcb_pointer;
+				current->tcb_pointer = NULL;
+			}
+			list->size--;
+			return current;
+		}
+		
+		// Iterate through list to find tcb
+		while(current != tcb && current != NULL){
+			previous = current;
+			current = current->tcb_pointer;
+		}
+		if(current == NULL){
+			return NULL;
+		}
+		
+		// Two cases, tcb being removed is last in list, or it is not last in list
+		if(current->tcb_pointer == NULL){
+			previous->tcb_pointer = NULL;
+		}
+		else{
+			previous->tcb_pointer = current->tcb_pointer;
+			current->tcb_pointer = NULL;
+		}
+		list->size--;
+		return current;
+	}
+}
+
 void add_task_to_sched(scheduler_t *scheduler, tcb_t *tcb){
 	priority_t priority = tcb->priority;
 	
@@ -283,5 +324,4 @@ void add_task_to_sched(scheduler_t *scheduler, tcb_t *tcb){
 		run_scheduler = true;
 	}
 }
-
 
