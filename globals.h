@@ -2,6 +2,7 @@
 #define __globals_h
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum{
     RUNNING = 0,
@@ -58,7 +59,10 @@ typedef struct{
 }semaphore_t;
 
 typedef struct{
-	uint8_t count;
+	bool available;
+	tcb_t *owner_tcb;
+	priority_t owner_true_priority;
+	priority_t inherited_priority;
 	tcb_list_t block_list;
 }mutex_t;
 
