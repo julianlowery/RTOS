@@ -28,6 +28,7 @@ void rtos_init(){
 	tcb_array[main_task_num].priority = IDLE;
 	// HANDLE TCB LIST POINTER HERE, SHOULD IT GO STRAIGHT TO READY LIST?
 	tcb_array[main_task_num].stack_size = 0; // not used yet
+	tcb_array[main_task_num].mutex_released = false;
 	
 	// Initalize all task stack addresses (including main task stack)
 	uint32_t *initial_sp_pointer = (uint32_t*)vector_table_address; 
@@ -161,9 +162,58 @@ void mutex_take(mutex_t *mutex){
 }
 
 void mutex_give(mutex_t *mutex){
+	if(scheduler.running_task != mutex->owner_tcb)
+		return;
+	if(mutex->available == true)
+		return;
 	
+	// If no tasks are blocked on the mutex
+	if(mutex->block_list.head == NULL){
+		mutex->available = true;
+		mutex->owner_tcb = NULL;
+		mutex->owner_true_priority = IDLE;
+		mutex->inherited_priority = IDLE;
+		mutex->block_list.head = NULL;
+	  mutex->block_list.tail = NULL;
+	}
+	
+	// If task(s) are blocked on mutex and owner did not inherit higher priority
+	else if(mutex->owner_true_priority == mutex->inherited_priority){		
+		mutex->owner_tcb = mutex->block_list.head;
+		mutex->owner_true_priority = mutex->block_list.head->priority;
+		mutex->inherited_priority = mutex->block_list.head->priority;
+		
+		tcb_t * freed_task = dequeue(&mutex->block_list);
+		// Add unblocked task to scheduler ready queue
+		enqueue(&scheduler.ready_lists[freed_task->priority], freed_task);
+	}
+	
+	// If task(s) blocked on mutex forced mutex owner to a higher priority
+	else if(mutex->inherited_priority < mutex->owner_true_priority){ // lower number is higher priority
+		// Set running task back to true priority
+		scheduler.running_task->priority = mutex->owner_true_priority;
+		
+		// Set running task back to its true priority ready list
+		dequeue(&scheduler.ready_lists[scheduler.current_priority]);
+		enqueue(&scheduler.ready_lists[mutex->owner_true_priority], mutex->owner_tcb);
+		
+		// Adjust mutex attributes to new unblocked task
+		mutex->owner_tcb = mutex->block_list.head;
+		mutex->owner_true_priority = mutex->block_list.head->priority;
+		mutex->inherited_priority = mutex->block_list.head->priority;
+		
+		// Set unblocked task to scheduler ready queue
+		tcb_t * freed_task = dequeue(&mutex->block_list);
+		enqueue(&scheduler.ready_lists[freed_task->priority], freed_task);
+		
+		// Set flag to handle special scheduling case
+		scheduler.running_task->mutex_released = true;
+		
+		// stepping through... check mutex is set properly etc. scheduler is not running properly, maybe set priorities to enter correct case
+		
+		run_scheduler = true;
+	}
 }
-
 
 
 
