@@ -30,7 +30,7 @@ typedef struct{
     priority_t priority;
     void *tcb_pointer;
 //    uint32_t delay_time // If you want to implement task delays maybe
-    // EVENT FLAGS... used to unblock task from blocked state
+		bool mutex_released;
     uint32_t *stack_base_address;
     uint32_t *stack_overflow_address;
     uint32_t stack_size;
