@@ -1,8 +1,6 @@
 #ifndef __rtos_h
 #define __rtos_h
 
-#include <stdbool.h>
-
 #include "globals.h"
 #include <LPC17xx.h>
 
@@ -14,8 +12,8 @@ void semaphore_init(semaphore_t *sem, uint8_t initial_count);
 void semaphore_take(semaphore_t *sem);
 void semaphore_give(semaphore_t *sem);
 
-void mutex_init(void);
-void mutex_give(void);
-void mutex_take(void);
+void mutex_init(mutex_t *mutex);
+void mutex_give(mutex_t *mutex);
+void mutex_take(mutex_t *mutex);
 
 #endif //__rtos_h
