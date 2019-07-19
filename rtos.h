@@ -16,4 +16,6 @@ void mutex_init(mutex_t *mutex);
 void mutex_give(mutex_t *mutex);
 void mutex_take(mutex_t *mutex);
 
+// Implement a return type for semaphore, mutex, and task_create functions
+
 #endif //__rtos_h
