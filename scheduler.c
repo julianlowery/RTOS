@@ -166,7 +166,14 @@ void PendSV_Handler(void){
 	// Check if scheduler was called for new higher priority task
 	if(scheduler.current_priority < scheduler.running_task->priority){
 		priority_t old_priority = scheduler.running_task->priority;
-		tcb_t *old_tcb = scheduler.ready_lists[old_priority].head;
+		
+		tcb_t *old_tcb;
+		
+		// If old task just released a mutex it will be at the tail of its queue
+		if(scheduler.running_task->mutex_released)
+			old_tcb = scheduler.ready_lists[old_priority].tail;
+		else
+			old_tcb = scheduler.ready_lists[old_priority].head;
 		
 		tcb_t *new_tcb = scheduler.ready_lists[scheduler.current_priority].head;
 		
