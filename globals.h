@@ -16,7 +16,7 @@ typedef enum{
     HIGHEST,
     HIGH,
     MED_HIGH,
-    MED,
+    MEDIUM,
     MED_LOW,
     LOW,
     LOWEST,
@@ -29,7 +29,6 @@ typedef struct{
     task_state_t state;
     priority_t priority;
     void *tcb_pointer;
-//    uint32_t delay_time // If you want to implement task delays maybe
 		bool mutex_released;
     uint32_t *stack_base_address;
     uint32_t *stack_overflow_address;
@@ -48,7 +47,6 @@ typedef struct{
 typedef struct{
   tcb_t* running_task;
   tcb_list_t ready_lists[8];
-//    tcb_list_t blocked_list; // should be priority queue based on first task to be unblocked
   tcb_list_t terminated_list;
 	priority_t current_priority;
 }scheduler_t;
