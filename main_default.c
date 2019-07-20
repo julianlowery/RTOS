@@ -116,7 +116,6 @@ int main(void) {
 // FIVE - Task 1 takes 1 from semaphore
 // SIX - Task 1 takes 1 from semaphore
 // SEVEN - Task 2 takes 1 from semaphore
-// EIGHT - Task 3 takes 1 from semaphore
 
 semaphore_t blocker_semaphore;
 
@@ -232,19 +231,24 @@ int main(void) {
 		printf("IDLE ");
 	}
 }
+
 */
 
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MUTEX TEST ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
 /*
+
+// Task 1,3 -> LOW
+// Task 2 -> HIGH
 
 // START - high priority takes and blocks on semaphore
 // ONE - low priority takes mutex
 // TWO - low priority gives semaphore, unblocking higher task
 // THREE - high priority takes and blocks on mutex (low priority is promoted) (runs alone on high priority)
-// 2000 - low priority gives mutex, is demoted, high priority takes mutex and runs alone on high priority
+// FOUR - low priority gives mutex, is demoted, high priority takes mutex and runs alone on high priority
 
 mutex_t blocker_mutex;
 semaphore_t block_sem;
