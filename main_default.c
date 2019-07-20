@@ -4,27 +4,21 @@
 
 #include "rtos.h"
 
-//extern tcb_t tcb_array[6];
-extern uint32_t msTicks;
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GENERAL OS DEMO ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SEMAPHORE TEST ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /*
-semaphore_t blocker_semaphore;
+
+semaphore_t block_sem;
 
 void task1(void* arg){
 	static uint32_t delay_count = 0;
 	uint32_t print_val = (uint32_t) arg;
 	while(true) {
-		printf("%d\n", print_val);
+		printf("%d", print_val);
 		delay_count++;
-		if(delay_count == 500){
-			semaphore_take(&blocker_semaphore);
-		}
-		if(delay_count == 1500)
-			semaphore_take(&blocker_semaphore);
-		if(delay_count == 2500){
-			semaphore_take(&blocker_semaphore);
-			semaphore_take(&blocker_semaphore);
+		if(delay_count == 1000){
+			printf("--------------------FIVE-----------------------------");
+			semaphore_take(&block_sem);
 		}
 	}
 }
@@ -32,17 +26,12 @@ void task1(void* arg){
 void task2(void* arg){
 	static uint32_t delay_count = 0;
 	uint32_t print_val = (uint32_t) arg;
-	while(true) {
-		printf("%d\n", print_val);
+	while(true) { 
+		printf("%d", print_val);
 		delay_count++;
-		if(delay_count == 1000){
-			semaphore_give(&blocker);
-		}
-		if(delay_count == 2000){
-			semaphore_give(&blocker_semaphore);
-			semaphore_give(&blocker_semaphore);
-			semaphore_give(&blocker_semaphore);
-			semaphore_give(&blocker_semaphore);
+		if(delay_count == 500){
+			printf("--------------------FOUR-----------------------------");
+			semaphore_take(&block_sem);
 		}
 	}
 }
@@ -51,11 +40,11 @@ void task3(void* arg){
 	static uint32_t delay_count = 0;
 	uint32_t print_val = (uint32_t) arg;
 	while(true) {
-		printf("%d\n", print_val);
+		printf("%d", print_val);
 		delay_count++;
-		if(delay_count == 1500){
-			semaphore_give(&blocker_semaphore);
-			semaphore_give(&blocker_semaphore);
+		if(delay_count == 1000){
+			printf("--------------------THREE-----------------------------");
+			semaphore_take(&block_sem);
 		}
 	}
 }
@@ -64,10 +53,11 @@ void task4(void* arg){
 	static uint32_t delay_count = 0;
 	uint32_t print_val = (uint32_t) arg;
 	while(true) {
-		printf("%d\n", print_val);
+		printf("%d", print_val);
 		delay_count++;
-		if(delay_count == 2000){
-			semaphore_take(&blocker_semaphore);
+		if(delay_count == 500){
+			printf("--------------------TWO-----------------------------");
+			semaphore_take(&block_sem);
 		}
 	}
 }
@@ -76,10 +66,11 @@ void task5(void* arg){
 	static uint32_t delay_count = 0;
 	uint32_t print_val = (uint32_t) arg;
 	while(true) {
-		printf("%d\n", print_val);
+		printf("%d", print_val);
 		delay_count++;
-		if(delay_count == 2500){
-			semaphore_take(&blocker_semaphore);
+		if(delay_count == 500){
+			printf("--------------------ONE-----------------------------");
+			semaphore_take(&block_sem);
 		}
 	}
 }
@@ -90,17 +81,146 @@ int main(void) {
 	
 	printf("\nStarting...\n\n");
 	SysTick_Config(SystemCoreClock/1000);
-	printf("1\n");
+	
+	rtos_init();
+	
+	semaphore_init(&block_sem, 0);
+
+	task_create(task1, (void*)0x1, LOW);
+	task_create(task2, (void*)0x2, LOW);
+	task_create(task3, (void*)0x3, MEDIUM);
+	task_create(task4, (void*)0x4, MEDIUM);
+	task_create(task5, (void*)0x5, HIGH);
+	
+	while(true) {
+		printf("0");
+	}
+}
+
+*/
+
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SEMAPHORE TEST ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+/*
+
+// Tasks 1 -> MEDIUM
+// Tasks 2,3 -> LOW
+
+// 0 - Tasks 1 run at medium priority.
+// ONE - Tasks 1 takes and blocks on semaphore, tasks 2,3 run on low priority.
+// TWO - Task 2 gives semaphore, unblocking task 1, task 1 runs on medium priority.
+// THREE - Task 1 gives 4 to semaphore.
+// FOUR - Task 1 takes 3 from semaphore.
+// FIVE - Task 1 takes 1 from semaphore
+// SIX - Task 1 takes 1 from semaphore
+// SEVEN - Task 2 takes 1 from semaphore
+// EIGHT - Task 3 takes 1 from semaphore
+
+semaphore_t blocker_semaphore;
+
+void task1(void* arg){
+	static uint32_t delay_count = 0;
+	uint32_t print_val = (uint32_t) arg;
+	while(true) {
+		printf("%d", print_val);
+		delay_count++;
+		if(delay_count == 500){
+			printf("--------------------ONE-----------------------------");
+			semaphore_take(&blocker_semaphore);
+		}
+		if(delay_count == 1000){
+			printf("--------------------THREE--------------------------");
+			semaphore_give(&blocker_semaphore);
+			semaphore_give(&blocker_semaphore);
+			semaphore_give(&blocker_semaphore);
+			semaphore_give(&blocker_semaphore);
+		}
+		
+		if(delay_count == 1500){
+			printf("-----------------FOUR--------------------------");
+			semaphore_take(&blocker_semaphore);
+			semaphore_take(&blocker_semaphore);
+			semaphore_take(&blocker_semaphore);
+		}
+		if(delay_count == 2000){
+			printf("-------------------FIVE---------------------------");
+			semaphore_take(&blocker_semaphore);
+		}
+		if(delay_count == 2500){
+			printf("---------------------SIX---------------------------");
+			semaphore_take(&blocker_semaphore);
+		}
+	}
+}
+
+void task2(void* arg){
+	static uint32_t delay_count = 0;
+	uint32_t print_val = (uint32_t) arg;
+	while(true) {
+		printf("%d", print_val);
+		delay_count++;
+		if(delay_count == 500){
+			printf("--------------------TWO-----------------------------");
+			semaphore_give(&blocker_semaphore);
+		}
+		if(delay_count == 1300){
+			printf("--------------------SEVEN-----------------------------");
+			semaphore_take(&blocker_semaphore);
+		}
+	}
+}
+
+void task3(void* arg){
+	static uint32_t delay_count = 0;
+	uint32_t print_val = (uint32_t) arg;
+	while(true) {
+		printf("%d", print_val);
+		delay_count++;
+	}
+}
+
+//void task4(void* arg){
+//	static uint32_t delay_count = 0;
+//	uint32_t print_val = (uint32_t) arg;
+//	while(true) {
+//		printf("%d", print_val);
+//		delay_count++;
+//		if(delay_count == 2000){
+//			semaphore_take(&blocker_semaphore);
+//		}
+//	}
+//}
+
+//void task5(void* arg){
+//	static uint32_t delay_count = 0;
+//	uint32_t print_val = (uint32_t) arg;
+//	while(true) {
+//		printf("%d", print_val);
+//		delay_count++;
+//		if(delay_count == 2500){
+//			semaphore_take(&blocker_semaphore);
+//		}
+//	}
+//}
+
+int main(void) {
+	
+	volatile uint32_t test = 0x11111111;
+	
+	printf("\nStarting...\n\n");
+	SysTick_Config(SystemCoreClock/1000);
 	
 	rtos_init();
 	
 	semaphore_init(&blocker_semaphore, 0);
 
-	task_create(task1, (void*)0x1, LOW);
-	task_create(task2, (void*)0x2, IDLE);
-//	task_create(task3, (void*)0x3, IDLE);
-//	task_create(task4, (void*)0x4, LOW);
-//	task_create(task5, (void*)0x5, LOW);
+	task_create(task1, (void*)0x1, MEDIUM);
+	task_create(task2, (void*)0x2, LOW);
+	task_create(task3, (void*)0x3, LOW);
+//	task_create(task4, (void*)0x4, MEDIUM);
+//	task_create(task5, (void*)0x5, MEDIUM);
 
 //	uint32_t period = 1000; // 1s
 //	uint32_t prev = -period;
@@ -109,19 +229,21 @@ int main(void) {
 //			printf("tick ");
 //			prev += period;
 //		}
-		printf("t_main\n");
+		printf("IDLE ");
 	}
 }
 */
 
 
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MUTEX TEST ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MUTEX TEST ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// 0 - high priority takes and blocks on semaphore
-// 500 - low priority takes mutex
-// 1000 - low priority gives semaphore, unblocking higher task
-// 1500 - high priority takes and blocks on mutex (low priority is promoted) (runs alone on high priority)
+/*
+
+// START - high priority takes and blocks on semaphore
+// ONE - low priority takes mutex
+// TWO - low priority gives semaphore, unblocking higher task
+// THREE - high priority takes and blocks on mutex (low priority is promoted) (runs alone on high priority)
 // 2000 - low priority gives mutex, is demoted, high priority takes mutex and runs alone on high priority
 
 mutex_t blocker_mutex;
@@ -131,18 +253,18 @@ void task1(void* arg){
 	static uint32_t delay_count = 0;
 	uint32_t print_val = (uint32_t) arg;
 	while(true) {
-		printf("%d\n", print_val);
+		printf("%d", print_val);
 		delay_count++;
 		if(delay_count == 500){
-			printf("-------------------------------500-------------------------------------------");
+			printf("----------------ONE----------------------");
 			mutex_take(&blocker_mutex);
 		}
 		if(delay_count == 1000){
-			printf("-------------------------------1000------------------------------------------");
+			printf("--------------TWO---------------------");
 			semaphore_give(&block_sem);
 		}
 		if(delay_count == 1500){
-			printf("-------------------------------2000------------------------------------------");
+			printf("---------------FOUR-----------------------");
 			mutex_give(&blocker_mutex);
 		}
 	}
@@ -153,64 +275,63 @@ void task2(void* arg){
 	uint32_t print_val = (uint32_t) arg;
 	semaphore_take(&block_sem);
 	while(true) { // starts at 1000
-		printf("%d\n", print_val);
+		printf("%d", print_val);
 		delay_count++;
 		if(delay_count == 500){
-			printf("-------------------------------1500------------------------------------------");
+			printf("----------------THREE----------------------");
 			mutex_take(&blocker_mutex);
 		}
 	}
 }
-/*
+
 void task3(void* arg){
 	static uint32_t delay_count = 0;
 	uint32_t print_val = (uint32_t) arg;
 	while(true) {
-		printf("%d\n", print_val);
+		printf("%d", print_val);
 		delay_count++;
 		if(delay_count == 1500){
 		}
 	}
 }
 
-void task4(void* arg){
-	static uint32_t delay_count = 0;
-	uint32_t print_val = (uint32_t) arg;
-	while(true) {
-		printf("%d\n", print_val);
-		delay_count++;
-		if(delay_count == 2000){
-		}
-	}
-}
+//void task4(void* arg){
+//	static uint32_t delay_count = 0;
+//	uint32_t print_val = (uint32_t) arg;
+//	while(true) {
+//		printf("%d", print_val);
+//		delay_count++;
+//		if(delay_count == 2000){
+//		}
+//	}
+//}
 
-void task5(void* arg){
-	static uint32_t delay_count = 0;
-	uint32_t print_val = (uint32_t) arg;
-	while(true) {
-		printf("%d\n", print_val);
-		delay_count++;
-		if(delay_count == 2500){
-		}
-	}
-}
-*/
+//void task5(void* arg){
+//	static uint32_t delay_count = 0;
+//	uint32_t print_val = (uint32_t) arg;
+//	while(true) {
+//		printf("%d", print_val);
+//		delay_count++;
+//		if(delay_count == 2500){
+//		}
+//	}
+//}
+
 int main(void) {
 	
 	volatile uint32_t test = 0x11111111;
 	
 	printf("\nStarting...\n\n");
 	SysTick_Config(SystemCoreClock/1000);
-	printf("1\n");
 	
 	rtos_init();
 	
 	mutex_init(&blocker_mutex);
 	semaphore_init(&block_sem, 0);
 
-	task_create(task1, (void*)0x1, IDLE);
+	task_create(task1, (void*)0x1, LOW);
 	task_create(task2, (void*)0x2, HIGH);
-//	task_create(task3, (void*)0x3, IDLE);
+	task_create(task3, (void*)0x3, LOW);
 //	task_create(task4, (void*)0x4, LOW);
 //	task_create(task5, (void*)0x5, LOW);
 
@@ -221,6 +342,7 @@ int main(void) {
 //			printf("tick ");
 //			prev += period;
 //		}
-		printf("t_main\n");
+		printf("0");
 	}
 }
+*/
