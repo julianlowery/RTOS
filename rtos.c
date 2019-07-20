@@ -8,10 +8,6 @@ extern tcb_t tcb_main;
 extern scheduler_t scheduler;
 extern bool run_scheduler;
 
-//uint8_t num_tasks = 0; can't remember why I had this here
-
-//extern void SysTick_Handler(void); // find better solution?
-
 void rtos_init(){
 	const uint32_t stack_size = 0x100; // Actaully physical stack_size/4 to account for 32 bit pointer incrementation
 	const uint32_t num_tcbs = 6;
@@ -19,14 +15,10 @@ void rtos_init(){
 	const uint32_t vector_table_address = 0x0;
 	const uint32_t psp_enable = (1<<1);
 	
-	// Debug
-	volatile int a = 0x22222222;
-	
 	tcb_array[main_task_num].task_id = main_task_num;
 	tcb_array[main_task_num].stack_pointer = tcb_array[main_task_num].stack_base_address; // This will be set properly as soon as task is switched out of
 	tcb_array[main_task_num].state = READY;
 	tcb_array[main_task_num].priority = IDLE;
-	// HANDLE TCB LIST POINTER HERE, SHOULD IT GO STRAIGHT TO READY LIST?
 	tcb_array[main_task_num].stack_size = 0; // not used yet
 	tcb_array[main_task_num].mutex_released = false;
 	
@@ -71,12 +63,11 @@ void task_create(rtosTaskFunc_t function_pointer, void* function_arg, priority_t
 	tcb_array[task_number].stack_pointer = tcb_array[task_number].stack_base_address;
 	tcb_array[task_number].state = READY;
 	tcb_array[task_number].priority = task_priority;
-	// HANDLE LIST POINTER HERE, SHOULD IT GO STRAIGHT TO READY LIST?
 	tcb_array[task_number].stack_size = 0; // not used yet
 	
 	// push all stack values incrementing psp
 	push_to_stack(&tcb_array[task_number], default_psr_val);
-	push_to_stack(&tcb_array[task_number], (uint32_t)function_pointer); // TEST THIS WELL
+	push_to_stack(&tcb_array[task_number], (uint32_t)function_pointer);
 	for(uint8_t count = 0; count < 5; count++)
 		push_to_stack(&tcb_array[task_number], 0x1);
 	push_to_stack(&tcb_array[task_number], (uint32_t)function_arg);
@@ -106,9 +97,6 @@ void semaphore_take(semaphore_t *sem){
 }
 
 void semaphore_give(semaphore_t *sem){
-	// The running task is fine unless a higher priority task is released by the mutex
-	// Just dequeue from block list and enqueue to its proper queue in priority level
-	
 	if(sem->block_list.head == NULL)
 		sem->count++;
 	else{
@@ -209,11 +197,6 @@ void mutex_give(mutex_t *mutex){
 		// Set flag to handle special scheduling case
 		scheduler.running_task->mutex_released = true;
 		
-		// stepping through... check mutex is set properly etc. scheduler is not running properly, maybe set priorities to enter correct case
-		
 		run_scheduler = true;
 	}
 }
-
-
-
