@@ -250,6 +250,8 @@ int main(void) {
 // THREE - high priority takes and blocks on mutex (low priority is promoted) (runs alone on high priority)
 // FOUR - low priority gives mutex, is demoted, high priority takes mutex and runs alone on high priority
 
+// ADD ANOTHER TASK ON THE HIGH PRIORITY THAT TRIES TO GIVE MUTEX WHILE LOWER PRIORITY IS HOLDING MUTEX
+
 mutex_t blocker_mutex;
 semaphore_t block_sem;
 
