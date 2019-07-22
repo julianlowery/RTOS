@@ -246,11 +246,10 @@ int main(void) {
 
 // START - high priority takes and blocks on semaphore
 // ONE - low priority takes mutex
-// TWO - low priority gives semaphore, unblocking higher task
-// THREE - high priority takes and blocks on mutex (low priority is promoted) (runs alone on high priority)
-// FOUR - low priority gives mutex, is demoted, high priority takes mutex and runs alone on high priority
-
-// ADD ANOTHER TASK ON THE HIGH PRIORITY THAT TRIES TO GIVE MUTEX WHILE LOWER PRIORITY IS HOLDING MUTEX
+// TWO - other low priority task tries to give mutex, does not work
+// THREE - low priority gives semaphore, unblocking higher task
+// FOUR - high priority takes and blocks on mutex (low priority is promoted) (runs alone on high priority)
+// FIVE - low priority gives mutex, is demoted, high priority takes mutex and runs alone on high priority
 
 mutex_t blocker_mutex;
 semaphore_t block_sem;
@@ -265,12 +264,12 @@ void task1(void* arg){
 			printf("----------------ONE----------------------");
 			mutex_take(&blocker_mutex);
 		}
-		if(delay_count == 1000){
-			printf("--------------TWO---------------------");
+		if(delay_count == 1500){
+			printf("--------------THREE---------------------");
 			semaphore_give(&block_sem);
 		}
-		if(delay_count == 1500){
-			printf("---------------FOUR-----------------------");
+		if(delay_count == 2000){
+			printf("---------------FIVE-----------------------");
 			mutex_give(&blocker_mutex);
 		}
 	}
@@ -284,7 +283,7 @@ void task2(void* arg){
 		printf("%d", print_val);
 		delay_count++;
 		if(delay_count == 500){
-			printf("----------------THREE----------------------");
+			printf("----------------FOUR-------------------");
 			mutex_take(&blocker_mutex);
 		}
 	}
@@ -296,7 +295,9 @@ void task3(void* arg){
 	while(true) {
 		printf("%d", print_val);
 		delay_count++;
-		if(delay_count == 1500){
+		if(delay_count == 1000){
+			printf("--------------TWO---------------------");
+			mutex_give(&blocker_mutex);
 		}
 	}
 }
