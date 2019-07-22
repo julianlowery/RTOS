@@ -122,6 +122,7 @@ void mutex_init(mutex_t *mutex){
 }
 
 void mutex_take(mutex_t *mutex){
+	__disable_irq();
 	if(mutex->available == true){
 		mutex->available = false;
 		mutex->owner_tcb = scheduler.running_task;
@@ -147,13 +148,21 @@ void mutex_take(mutex_t *mutex){
 		}
 		run_scheduler = true;
 	}
+	__enable_irq();
 }
 
 void mutex_give(mutex_t *mutex){
-	if(scheduler.running_task != mutex->owner_tcb)
+	
+	__disable_irq();
+	
+	if(scheduler.running_task != mutex->owner_tcb){
+		__enable_irq();
 		return;
-	if(mutex->available == true)
+	}
+	if(mutex->available == true){
+		__enable_irq();
 		return;
+	}
 	
 	// If no tasks are blocked on the mutex
 	if(mutex->block_list.head == NULL){
@@ -198,5 +207,6 @@ void mutex_give(mutex_t *mutex){
 		scheduler.running_task->mutex_released = true;
 		
 		run_scheduler = true;
+		__enable_irq();
 	}
 }
