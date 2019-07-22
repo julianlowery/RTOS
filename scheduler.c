@@ -61,7 +61,14 @@ void SysTick_Handler(void) {
   msTicks++;
 	time_slice_count--;
 	
-	if(time_slice_count == 0){
+	if(run_scheduler){
+		run_scheduler = false;
+		
+		// Set pendSV exception to pending
+		SCB->ICSR=(SCB->ICSR|set_pendsv);
+	}
+	
+	else if(time_slice_count == 0){
 		time_slice_count = time_slice_len;
 		
 		// Rearrange ready queue for scheduler
@@ -71,12 +78,6 @@ void SysTick_Handler(void) {
 		
 		dequeue(list);
 		enqueue(list, old_task);
-		
-		// Set pendSV exception to pending
-		SCB->ICSR=(SCB->ICSR|set_pendsv);
-	}
-	if(run_scheduler){
-		run_scheduler = false;
 		
 		// Set pendSV exception to pending
 		SCB->ICSR=(SCB->ICSR|set_pendsv);
